@@ -105,93 +105,91 @@ void setup() {
   mixer3.gain(3, 0.2);
   
   Serial.begin(9600);
-  
-
 }
 
-elapsedMillis update = 0;
-
-// the loop routine runs over and over again forever:
-void loop() {
-
-int averagecount = 50;  
-int pot1; 
-int pot2; 
-int cv1; 
-int cv2; 
-for(int i = 0; i< averagecount ; i++){  
-  
- pot1 += analogRead(CHAN_POT_PIN);
- pot2 +=  analogRead(TIME_POT_PIN);  
- cv1 += analogRead(CHAN_CV_PIN); 
- cv2 += analogRead(TIME_CV_PIN); 
+int PinAverage(int pinID, int numSamples)
+{
+	int sample = 0;
+	for(int i = 0; i < numSamples; ++i)
+	{
+		sample += analogRead(pinID);
+	}
+	return sample / numSamples;
 }
 
-pot1 = pot1 / averagecount; 
-pot2 = pot2 / averagecount; 
-cv1 = cv1 / averagecount; 
-cv2 = cv2 / averagecount; 
-
-
-if (update > 50){
-
-Serial.print("Channel pot=");
-Serial.print(pot1);
-Serial.print(" Time pot=");
-Serial.print(pot2);
-Serial.print(" Channel CV=");
-Serial.print(cv1);
-Serial.print(" Time CV=");
-Serial.println(cv2);
-update = 0;
+void PrintDebugInfo(int pot1, int pot2, int cv1, int cv2)
+{
+	static elapsedMillis update = 0;
+	if (update > 50)
+	{
+		Serial.print("Channel pot=");
+		Serial.print(pot1);
+		Serial.print(" Time pot=");
+		Serial.print(pot2);
+		Serial.print(" Channel CV=");
+		Serial.print(cv1);
+		Serial.print(" Time CV=");
+		Serial.println(cv2);
+		update = 0;
+	}
 }
-  
-analogWrite(LED3,pot1 / 4);
-analogWrite(LED2,pot2 / 4);
-analogWrite(LED1,cv1 /4);
-analogWrite(LED0,cv2 /4);
 
-// Very Messy Additive Synthesis Engine
-// each waveform is the fundamental frequency
-// multiplied/divided by a value derived from the time pot
-// These are recursively multiplied for each successive waveform
+void UpdateLEDs(int pot1, int pot2, int cv1, int cv2)
+{
+	analogWrite(LED3, pot1 / 4);
+	analogWrite(LED2, pot2 / 4);
+	analogWrite(LED1, cv1 / 4);
+	analogWrite(LED0, cv2 / 4);
+}
 
-      sine1.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2));
-      sine1.amplitude(0.9);
-      sine2.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine2.amplitude(0.9);
-      sine3.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)));
-      sine3.amplitude(0.9);
-      sine4.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine4.amplitude(0.9);
-      sine5.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine5.amplitude(0.9);
-      sine6.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine6.amplitude(0.9);
-      sine7.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine7.amplitude(0.9);
-      sine8.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) * (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine8.amplitude(0.9);
+void loop()
+{
+	int averagecount = 50;
+	int pot1 = PinAverage(CHAN_POT_PIN, averagecount);
+	int pot2 = PinAverage(TIME_POT_PIN, averagecount);
+	int cv1 = PinAverage(CHAN_CV_PIN, averagecount);
+	int cv2 = PinAverage(TIME_CV_PIN, averagecount);
+	PrintDebugInfo(pot1, pot2, cv1, cv2);
+	UpdateLEDs(pot1, pot2, cv1, cv2);
+	
+	// Very Messy Additive Synthesis Engine
+	// each waveform is the fundamental frequency
+	// multiplied/divided by a value derived from the time pot
+	// These are recursively multiplied for each successive waveform
+	sine1.frequency((pot1*2 + cv1*2));
+	sine1.amplitude(0.9);
+	sine2.frequency((pot1*2 + cv1*2) * ((pot2 + cv2) * 0.001));
+	sine2.amplitude(0.9);
+	sine3.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)));
+	sine3.amplitude(0.9);
+	sine4.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001));
+	sine4.amplitude(0.9);
+	sine5.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine5.amplitude(0.9);
+	sine6.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine6.amplitude(0.9);
+	sine7.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine7.amplitude(0.9);
+	sine8.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine8.amplitude(0.9);
 
-      sine9.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine9.amplitude(0.9);
-      sine10.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)));
-      sine10.amplitude(0.9);
-      sine11.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine11.amplitude(0.9);
-      sine12.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine12.amplitude(0.9);
-      sine13.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine13.amplitude(0.9);
-      sine14.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine14.amplitude(0.9);
-      sine15.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2) / (((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)*((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001)) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001) * ((analogRead(TIME_POT_PIN) + analogRead(TIME_CV_PIN)) * 0.001));
-      sine15.amplitude(0.9);
-     
+	sine9.frequency((pot1*2 + cv1*2) / ((pot2 + cv2) * 0.001));
+	sine9.amplitude(0.9);
+	sine10.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)));
+	sine10.amplitude(0.9);
+	sine11.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001));
+	sine11.amplitude(0.9);
+	sine12.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine12.amplitude(0.9);
+	sine13.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine13.amplitude(0.9);
+	sine14.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine14.amplitude(0.9);
+	sine15.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
+	sine15.amplitude(0.9);
 
-       sine16.frequency((analogRead(CHAN_POT_PIN)*2 + analogRead(CHAN_CV_PIN)*2));
-      sine16.amplitude(0.0);
-
+	sine16.frequency((pot1*2 + cv1*2));
+	sine16.amplitude(0.0);
 }
 
 // WRITE A 4 DIGIT BINARY NUMBER TO LED0-LED3 
@@ -202,5 +200,3 @@ void ledWrite(int n){
   digitalWrite(LED2, HIGH && (n & B00000010));
   digitalWrite(LED3, HIGH && (n & B00000001)); 
 }
-
-
