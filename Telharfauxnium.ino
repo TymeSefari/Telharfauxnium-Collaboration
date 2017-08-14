@@ -10,44 +10,33 @@
 #include <SerialFlash.h>
 
 // GUItool: begin automatically generated code
-AudioSynthWaveformSine   sine1;          //xy=98,118
-AudioSynthWaveformSine   sine3;          //xy=100,210
-AudioSynthWaveformSine   sine4;          //xy=101,256
-AudioSynthWaveformSine   sine2;          //xy=102,158
-AudioSynthWaveformSine   sine5;          //xy=104,341
-AudioSynthWaveformSine   sine8;          //xy=106,489
-AudioSynthWaveformSine   sine6;          //xy=111,386
-AudioSynthWaveformSine   sine7;          //xy=114,431
-AudioSynthWaveformSine   sine9;          //xy=121,596
-AudioSynthWaveformSine   sine10;         //xy=122,641
-AudioSynthWaveformSine   sine12;         //xy=122,744
-AudioSynthWaveformSine   sine14;         //xy=126,861
-AudioSynthWaveformSine   sine13;         //xy=127,815
-AudioSynthWaveformSine   sine11;         //xy=128,690
-AudioSynthWaveformSine   sine15;         //xy=145,904
-AudioSynthWaveformSine   sine16;         //xy=169,972
+AudioSynthWaveformSine	upperHarmonics[8];
+AudioSynthWaveformSine	lowerHarmonics[8];
 AudioMixer4              mixer2;         //xy=355,277
 AudioMixer4              mixer1;         //xy=358,157
 AudioMixer4              mixer4;         //xy=358,379
 AudioMixer4              mixer5;         //xy=388,853
 AudioMixer4              mixer3;         //xy=511,269
 AudioOutputAnalog        dac1;           //xy=623,136
-AudioConnection          patchCord1(sine1, 0, mixer1, 0);
-AudioConnection          patchCord2(sine3, 0, mixer1, 2);
-AudioConnection          patchCord3(sine4, 0, mixer1, 3);
-AudioConnection          patchCord4(sine2, 0, mixer1, 1);
-AudioConnection          patchCord5(sine5, 0, mixer2, 0);
-AudioConnection          patchCord6(sine8, 0, mixer2, 3);
-AudioConnection          patchCord7(sine6, 0, mixer2, 1);
-AudioConnection          patchCord8(sine7, 0, mixer2, 2);
-AudioConnection          patchCord9(sine9, 0, mixer4, 0);
-AudioConnection          patchCord10(sine10, 0, mixer4, 1);
-AudioConnection          patchCord11(sine12, 0, mixer4, 3);
-AudioConnection          patchCord12(sine14, 0, mixer5, 1);
-AudioConnection          patchCord13(sine13, 0, mixer5, 0);
-AudioConnection          patchCord14(sine11, 0, mixer4, 2);
-AudioConnection          patchCord15(sine15, 0, mixer5, 2);
-AudioConnection          patchCord16(sine16, 0, mixer5, 3);
+AudioConnection          patchCord1(upperHarmonics[0], 0, mixer1, 0);
+AudioConnection          patchCord2(upperHarmonics[2], 0, mixer1, 2);
+AudioConnection          patchCord3(upperHarmonics[3], 0, mixer1, 3);
+AudioConnection          patchCord4(upperHarmonics[1], 0, mixer1, 1);
+
+AudioConnection          patchCord5(upperHarmonics[4], 0, mixer2, 0);
+AudioConnection          patchCord6(upperHarmonics[7], 0, mixer2, 3);
+AudioConnection          patchCord7(upperHarmonics[5], 0, mixer2, 1);
+AudioConnection          patchCord8(upperHarmonics[6], 0, mixer2, 2);
+
+AudioConnection          patchCord9(lowerHarmonics[0], 0, mixer4, 0);
+AudioConnection          patchCord10(lowerHarmonics[1], 0, mixer4, 1);
+AudioConnection          patchCord11(lowerHarmonics[3], 0, mixer4, 3);
+AudioConnection          patchCord14(lowerHarmonics[2], 0, mixer4, 2);
+
+AudioConnection          patchCord12(lowerHarmonics[5], 0, mixer5, 1);
+AudioConnection          patchCord13(lowerHarmonics[4], 0, mixer5, 0);
+AudioConnection          patchCord15(lowerHarmonics[6], 0, mixer5, 2);
+AudioConnection          patchCord16(lowerHarmonics[7], 0, mixer5, 3);
 AudioConnection          patchCord17(mixer2, 0, mixer3, 1);
 AudioConnection          patchCord18(mixer1, 0, mixer3, 0);
 AudioConnection          patchCord19(mixer4, 0, mixer3, 2);
@@ -152,44 +141,15 @@ void loop()
 	PrintDebugInfo(pot1, pot2, cv1, cv2);
 	UpdateLEDs(pot1, pot2, cv1, cv2);
 	
-	// Very Messy Additive Synthesis Engine
-	// each waveform is the fundamental frequency
-	// multiplied/divided by a value derived from the time pot
-	// These are recursively multiplied for each successive waveform
-	sine1.frequency((pot1*2 + cv1*2));
-	sine1.amplitude(0.9);
-	sine2.frequency((pot1*2 + cv1*2) * ((pot2 + cv2) * 0.001));
-	sine2.amplitude(0.9);
-	sine3.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)));
-	sine3.amplitude(0.9);
-	sine4.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001));
-	sine4.amplitude(0.9);
-	sine5.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine5.amplitude(0.9);
-	sine6.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine6.amplitude(0.9);
-	sine7.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine7.amplitude(0.9);
-	sine8.frequency((pot1*2 + cv1*2) * (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine8.amplitude(0.9);
-
-	sine9.frequency((pot1*2 + cv1*2) / ((pot2 + cv2) * 0.001));
-	sine9.amplitude(0.9);
-	sine10.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)));
-	sine10.amplitude(0.9);
-	sine11.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001));
-	sine11.amplitude(0.9);
-	sine12.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine12.amplitude(0.9);
-	sine13.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine13.amplitude(0.9);
-	sine14.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine14.amplitude(0.9);
-	sine15.frequency((pot1*2 + cv1*2) / (((pot2 + cv2) * 0.001)*((pot2 + cv2) * 0.001)) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001) * ((pot2 + cv2) * 0.001));
-	sine15.amplitude(0.9);
-
-	sine16.frequency((pot1*2 + cv1*2));
-	sine16.amplitude(0.0);
+	auto fundamental = pot1*2 + cv1*2;
+	auto offset = pot2 + cv2 * 0.001;
+	for (int i = 0; i < 8; ++i)
+	{
+		upperHarmonics[i].frequency(fundamental * pow(offset, i));
+		upperHarmonics[i].amplitude(0.9);
+		lowerHarmonics[i].frequency(fundamental / pow(offset, i));
+		lowerHarmonics[i].amplitude(i > 0 ? 0.9 : 0);
+	}
 }
 
 // WRITE A 4 DIGIT BINARY NUMBER TO LED0-LED3 
